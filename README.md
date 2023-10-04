@@ -2,6 +2,8 @@
 
 # install Pytorch Geometric
 https://pytorch-geometric.readthedocs.io/en/latest/install/installation.html
+# install DGL
+https://www.dgl.ai/pages/start.html
 
 # packages explained 
 networkx for visualizing graphs 
