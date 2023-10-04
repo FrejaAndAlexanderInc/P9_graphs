@@ -1,4 +1,6 @@
 import os
+
+from gcn_3layer import GCN3L
 os.environ["DGLBACKEND"] = "pytorch"
 
 import dgl
@@ -50,7 +52,7 @@ dataset = dgl.data.CoraGraphDataset()
 print(f"Number of categories: {dataset.num_classes}")
 
 # A DGL Dataset object may contain one or multiple graphs. 
-# The Cora dataset used in this tutorial only consists of one single graph.
+# The Cora dataset used only consists of one single graph.
 graph = dataset[0]
 
 print("Node features")
@@ -82,12 +84,13 @@ def train(g, model, epochs=100, learning_rate=0.01):
         loss = F.cross_entropy(logits[train_mask], labels[train_mask])
 
         # Compute accuracy on training/validation/test
-        train_acc = (pred[train_mask] == labels[train_mask]).float().mean()
 
         # f1 for validation and test set is done each epoch
+        train_f1 = f1_score(labels[train_mask].cpu().numpy(), pred[train_mask].cpu().numpy(), average='macro')
         val_f1 = f1_score(labels[val_mask].cpu().numpy(), pred[val_mask].cpu().numpy(), average='macro')
         test_f1 = f1_score(labels[test_mask].cpu().numpy(), pred[test_mask].cpu().numpy(), average='macro')
 
+        # train_acc = (pred[train_mask] == labels[train_mask]).float().mean()
         # val_acc = (pred[val_mask] == labels[val_mask]).float().mean()
         # test_acc = (pred[test_mask] == labels[test_mask]).float().mean()
 
@@ -107,10 +110,12 @@ def train(g, model, epochs=100, learning_rate=0.01):
             )
 
 
-model = GCN(graph.ndata["feat"].shape[1], 16, dataset.num_classes).to('cuda')
+model = GCN(graph.ndata["feat"].shape[1], 32, dataset.num_classes)
+model3l = GCN3L(graph.ndata["feat"].shape[1], 32, 16, dataset.num_classes)
 
 if CUDA:
     graph = graph.to('cuda')
     model = model.to('cuda')
+    model3l = model.to('cuda')
 
-train(graph, model)
+train(graph, model3l, 100, 0.01)
