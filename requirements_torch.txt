@@ -1,0 +1,5 @@
+torch_geometric
+networkx
+torch-sparse -f https://data.pyg.org/whl/torch-1.9.1+cpu.html
+torch-scatter -f https://data.pyg.org/whl/torch-1.9.1+cpu.html
+torch-spline-conv -f https://data.pyg.org/whl/torch-1.9.1+cpu.html
