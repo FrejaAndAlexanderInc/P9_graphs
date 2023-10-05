@@ -1,9 +1,4 @@
 pandas==2.0.1
-torch_geometric==2.3.1
-networkx==3.1
-torch-sparse==0.6.17 -f https://data.pyg.org/whl/torch-1.9.1+cpu.html
-torch-scatter==2.1.1 -f https://data.pyg.org/whl/torch-1.9.1+cpu.html
-torch-spline-conv==1.2.2 -f https://data.pyg.org/whl/torch-1.9.1+cpu.html
 PySide==1.2.4
 dgl -f https://data.dgl.ai/wheels/cu118/repo.html
 dglgo -f https://data.dgl.ai/wheels-test/repo.html
