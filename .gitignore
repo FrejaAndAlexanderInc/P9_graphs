@@ -1,5 +1,11 @@
 log/*
 ehr_graphs/datasetmodule/output
+.idea
+.vscode
+
+# private keys 
+service_account_key
+mimiciv_gbq.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -4,7 +4,6 @@ from .RelationConstructor import RelationConstructor
 from ..utils.diag_utils import remove_dot, add_dot, roll_to_level
 import torch as th
 
-from ..utils import get_midi_df
 from ..utils.diag_utils import get_diag_hrchy
 
 
