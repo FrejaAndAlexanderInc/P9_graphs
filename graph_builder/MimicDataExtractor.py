@@ -11,13 +11,13 @@ class MimicDataExtractor:
         self.config = config
 
     def extract_entities(self) -> pd.DataFrame:
-        return self.extract(self.patient, None)
+        return self.extract(self.patient)
 
     def extract(self, query_func: QueryFunc, *args) -> pd.DataFrame:
         df = pandas_gbq.read_gbq(
             query_func(*args),
             project_id=self.config.project_id,
-            credentials=self.config.credentials
+            credentials=self.config.connection
         )
 
         if df is None:
@@ -26,4 +26,4 @@ class MimicDataExtractor:
             return df
 
     def patient(self):
-        return f"select * from `masterthesis-401512.mimiciv_hosp.patient`"
+        return f"select * from `masterthesis-401512.mimiciv_hosp.patients` where anchor_age > 18"
