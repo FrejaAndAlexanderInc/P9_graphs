@@ -1,5 +1,8 @@
 # P9
 
+# setup
+```pip install -e .```
+
 # install Pytorch Geometric
 https://pytorch-geometric.readthedocs.io/en/latest/install/installation.html
 # install DGL
