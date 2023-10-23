@@ -1,12 +1,12 @@
-from graph_builder.config.Config import Config
-from MimicDataExtractor import MimicDataExtractor
 from pathlib import Path
 
-CONFIG_FILEPATH = str(Path.cwd() / '/config/config.ini')
+from graph_builder.config.Config import Config
+Config.initialize(str(Path.cwd() / 'config/config.ini'))
+
+from MimicDataExtractor import MimicDataExtractor
 
 def main():
-    config = Config(CONFIG_FILEPATH)
-    mde = MimicDataExtractor(config)
+    mde = MimicDataExtractor()
     df = mde.extract_entities()
     print(df.head())
 
