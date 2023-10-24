@@ -4,6 +4,7 @@ ehr_graphs/datasetmodule/output
 .vscode
 service_account.json
 datasets/*
+*.parquet
 
 # private keys 
 service_account_key
