@@ -1,8 +1,3 @@
-from pathlib import Path
-
-from graph_builder.config.Config import Config
-Config.initialize(str(Path.cwd() / 'config/config.ini'))
-
 from MimicDataExtractor import MimicDataExtractor
 
 def main():

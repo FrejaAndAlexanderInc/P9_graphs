@@ -14,8 +14,8 @@ class Config:
     """
 
     project_id: str
-    database = None
-    connection = None
+    database: str
+    connection: Credentials
     entities: list[str]
 
     @classmethod
@@ -68,7 +68,12 @@ class Config:
     @staticmethod
     def __read_extractor_config() -> dict:
         config_json = None
-        with open(Path(__file__).parent.joinpath('extractor_config.json').resolve()) as fp:  
+        json_config_path = Path(__file__).parent / 'extractor_config.json'
+        with open(json_config_path.resolve()) as fp:  
             config_json = json.load(fp)
         
         return config_json
+
+
+# config.ini should be in config folder
+Config.initialize(str(Path(__file__).parent / 'config.ini'))
