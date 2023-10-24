@@ -1,5 +1,3 @@
-from enum import Enum
-
 from graph_builder.config.Config import Config
 
 PROJECT_NAME = Config.project_id

@@ -1,7 +1,9 @@
 # P9
 
-# setup
-```pip install -e .```
+# setup 
+1. ```pip install -e .```
+2. ```pip install -r requirements.txt```
+3. get [service account](#service-account) json key, rename to service_account.json, and place in config folder. See service 
 
 # install Pytorch Geometric
 https://pytorch-geometric.readthedocs.io/en/latest/install/installation.html
@@ -22,5 +24,5 @@ get service account json file:
 https://www.youtube.com/watch?v=gb0bytUGDnQ
 
 # Google cloud
-bucket: gs://mimic-iv-dataset-master/
-project: masterthesis-401512
+bucket: gs://mimic-iv-dataset-master/  
+project: masterthesis-401512  
