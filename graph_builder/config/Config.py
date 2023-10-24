@@ -17,6 +17,7 @@ class Config:
     database: str
     connection: Credentials
     entities: list[str]
+    output_folder: str
 
     @classmethod
     def initialize(cls, config_file_path: str):

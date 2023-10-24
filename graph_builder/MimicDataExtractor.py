@@ -21,7 +21,7 @@ class MimicDataExtractor:
         for entity in Config.entities:
             entity_extract_func = getattr(self, entity)
             df = self.extract(entity_extract_func)
-            output_file = Path.joinpath(Config.output_folder, f'{entity_extract_func.__name__}.parquet')
+            output_file = Path(Config.output_folder) / f'{entity_extract_func.__name__}.parquet'
             df.to_parquet(output_file)
 
     def extract(self, query_func: QueryFunc, *args) -> pd.DataFrame:
