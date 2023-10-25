@@ -5,6 +5,8 @@ ehr_graphs/datasetmodule/output
 service_account.json
 datasets/*
 *.parquet
+extractor_config.json
+
 
 # private keys 
 service_account_key
