@@ -1,4 +1,0 @@
-{
-    "entities": ["patients", "admissions", "diagnosis", "labevents", "medications"],
-    "output_folder": "C:/Users/ax111/Documents/personal_documents/P9/P9/datasets/extractor_out"
-}
