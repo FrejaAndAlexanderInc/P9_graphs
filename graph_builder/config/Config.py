@@ -4,6 +4,9 @@ from google.oauth2 import service_account
 from google.oauth2.service_account import Credentials
 from pathlib import Path
 
+CONFIG_PATH = Path(__file__).parent / 'config.ini'
+EXTRACTOR_CONFIG_PATH = Path(__file__).parent / 'extractor_config.json'
+
 class Config:
     """Access the configs in config.ini through this class.
     Also reads the service_account.json in the config folder. 
@@ -20,18 +23,18 @@ class Config:
     output_folder: str
 
     @classmethod
-    def initialize(cls, config_file_path: str):
+    def initialize(cls, config_file_path: str, extractor_config_path: str):
         """Sets the members of the class
 
         Args:
             config_file_path (str): path to config.ini file. 
+            extractor_config_path (str): path to extractor config file.
         """
         conf = cls.read_conf(config_file_path)
         cls.project_id = conf.get('mimiciv', 'project_id')
-        cls.database = conf.get('mimiciv', 'database')
         cls.connection = cls.__get_gbq_connection()
 
-        extractor_config = cls.__read_extractor_config()
+        extractor_config = cls.__read_extractor_config(extractor_config_path)
         cls.entities = extractor_config['entities']
         cls.output_folder = extractor_config['output_folder']
 
@@ -67,14 +70,12 @@ class Config:
         )
 
     @staticmethod
-    def __read_extractor_config() -> dict:
+    def __read_extractor_config(config_path: str) -> dict:
         config_json = None
-        json_config_path = Path(__file__).parent / 'extractor_config.json'
-        with open(json_config_path.resolve()) as fp:  
+        with open(config_path) as fp:  
             config_json = json.load(fp)
         
         return config_json
 
 
-# config.ini should be in config folder
-Config.initialize(str(Path(__file__).parent / 'config.ini'))
+Config.initialize(str(CONFIG_PATH), str(EXTRACTOR_CONFIG_PATH))

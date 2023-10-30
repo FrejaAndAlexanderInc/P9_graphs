@@ -1,4 +1,4 @@
-from MimicDataExtractor import MimicDataExtractor
+from data_extractor.MimicDataExtractor import MimicDataExtractor
 
 def main():
     mde = MimicDataExtractor()

@@ -39,6 +39,12 @@ class MimicivIcu():
     outputevents = f"`{PROJECT_NAME}.mimiciv_icu.outputevents`"
     procedureevents = f"`{PROJECT_NAME}.mimiciv_icu.procedureevents`"
 
+class MimicIvEd():
+    pass
+
+class MimicIvDerived():
+    sepsis3 = f"`{PROJECT_NAME}.mimiciv_derived.sepsis3`"
+
 class Tables:
     """Enum type class that represent all the datasets and tables available
     in the GBQ database. Useful for intellisense when writing sql queries.
@@ -49,3 +55,5 @@ class Tables:
 
     mimiciv_hosp = MimicivHosp
     mimiciv_icu = MimicivIcu
+    mimiciv_ed = MimicIvEd
+    mimiciv_derived = MimicIvDerived

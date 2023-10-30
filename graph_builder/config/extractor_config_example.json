@@ -1,4 +1,4 @@
 {
     "entities": ["patients", "admissions", "diagnosis", "labevents", "medications"],
     "output_folder": "your path here"
-}
+}   
