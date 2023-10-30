@@ -26,3 +26,6 @@ https://www.youtube.com/watch?v=gb0bytUGDnQ
 # Google cloud
 bucket: gs://mimic-iv-dataset-master/  
 project: masterthesis-401512  
+
+# Create sepsis cohort table
+run the query in create_sepsis_cohort.sql 

@@ -45,6 +45,9 @@ class MimicIvEd():
 class MimicIvDerived():
     sepsis3 = f"`{PROJECT_NAME}.mimiciv_derived.sepsis3`"
 
+class MimicIvSepsis():
+    sepsis_cohort = f"`{PROJECT_NAME}.mimiciv_sepsis.sepsis_cohort`"
+
 class Tables:
     """Enum type class that represent all the datasets and tables available
     in the GBQ database. Useful for intellisense when writing sql queries.
@@ -57,3 +60,4 @@ class Tables:
     mimiciv_icu = MimicivIcu
     mimiciv_ed = MimicIvEd
     mimiciv_derived = MimicIvDerived
+    mimiciv_sepsis = MimicIvSepsis
