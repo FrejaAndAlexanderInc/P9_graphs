@@ -2,6 +2,8 @@ from graph_builder.data_extractor.data_extractor import DataExctractor
 from graph_builder.Tables import Tables
 
 class SepsisDataExtractor(DataExctractor):
+    """Data extractor for 24 hour sepsis prognosis. 
+    """
 
     def __init__(self, sepsis_patients_limit: int = -1, patient_limit: int = -1) -> None:
         super().__init__()

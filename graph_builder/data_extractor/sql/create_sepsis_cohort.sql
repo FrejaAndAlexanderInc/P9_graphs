@@ -1,5 +1,5 @@
 create table `masterthesis-401512.mimiciv_sepsis.sepsis_cohort` as
-SELECT 
+SELECT distinct
   p.subject_id, 
   p.gender, 
   p.anchor_age as age,
