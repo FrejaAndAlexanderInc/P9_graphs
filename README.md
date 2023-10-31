@@ -29,3 +29,17 @@ project: masterthesis-401512
 
 # Create sepsis cohort table
 run the query in create_sepsis_cohort.sql 
+
+# sepsis ICD codes
+ICD-9-CM Codes for Sepsis:
+995.91: Sepsis  
+995.92: Severe sepsis  
+785.52: Septic shock  
+038.xx: Certain other septicemias (various subcodes may indicate sepsis)  
+
+ICD-10-CM Codes for Sepsis:  
+A40.xx: Streptococcal sepsis  
+A41.xx: Other sepsis  
+R65.20: Severe sepsis without septic shock  
+R65.21: Severe sepsis with septic shock  
+T81.12x: Postprocedural sepsis (various subcodes)  
