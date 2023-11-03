@@ -20,6 +20,7 @@ class Config:
     database: str
     connection: Credentials
     entities: list[str]
+    relations: list[str]
     output_folder: str
 
     @classmethod
@@ -36,6 +37,7 @@ class Config:
 
         extractor_config = cls.__read_extractor_config(extractor_config_path)
         cls.entities = extractor_config['entities']
+        cls.relations = extractor_config['relations']
         cls.output_folder = extractor_config['output_folder']
 
     @staticmethod

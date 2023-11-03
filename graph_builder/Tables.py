@@ -47,6 +47,9 @@ class MimicIvDerived():
 
 class MimicIvSepsis():
     sepsis_cohort = f"`{PROJECT_NAME}.mimiciv_sepsis.sepsis_cohort`"
+    patient_samples = f"`{PROJECT_NAME}.mimiciv_sepsis.patient_samples`"
+    used_subject_ids = f"`{PROJECT_NAME}.mimiciv_sepsis.used_subject_ids`"
+
 
 class Tables:
     """Enum type class that represent all the datasets and tables available

@@ -29,6 +29,7 @@ project: masterthesis-401512
 
 # Create sepsis cohort table
 run the query in create_sepsis_cohort.sql 
+after creating sepsis_cohort and patient_samples, used_subject_ids must be created as a union of the two
 
 # sepsis ICD codes
 ICD-9-CM Codes for Sepsis:
