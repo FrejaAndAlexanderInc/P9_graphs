@@ -19,18 +19,14 @@ class DataExctractor(ABC):
             output_file = Path(Config.output_folder) / f'{entity_extract_func.__name__}.parquet'
             df.to_parquet(output_file)
 
-    def extract_from_config_multithreaded(self, members: list[str]):
-        executor = concurrent.futures.ProcessPoolExecutor(10)
-        futures = [executor.submit(self.extract_from_config, group) for group in grouper(members, len(members))]
-        concurrent.futures.wait(futures)
-
     def extract_entities(self):
         """Extract entities specified in extractor_config.json.
         Save as partquet to folder specified in same file. 
         """
         self.extract_from_config(Config.entities)
 
-    def extract_relations(self):
+    # TODO
+    def extract_relations(self): 
         self.extract_from_config(Config.relations)
 
     def extract(self, query_func: QueryFunc, *args) -> pd.DataFrame:

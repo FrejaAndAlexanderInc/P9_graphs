@@ -20,7 +20,7 @@ class Config:
     database: str
     connection: Credentials
     entities: list[str]
-    relations: list[str]
+    relations: list[dict]
     output_folder: str
 
     @classmethod
