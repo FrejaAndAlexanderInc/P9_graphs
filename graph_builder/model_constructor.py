@@ -29,33 +29,34 @@ class ModelConstructor:
     def combine_patients(self):
         """Combine the both the patients with and without sepsis. 
         """
-        patients = self.entities["patient"]
+        patients = self.entities["patients"]
         sepsis_patients = self.entities["sepsis_cohort"]
         patients.combine_entity(sepsis_patients)
 
     def construct_entities(self):
         for ent in Config.entities:
             # Read entity information from conf
-            name = ent["name"]
+            filename = ent["file_name"]
+            sub = ent['sub']
             alias = ent["alias"]
 
             # Create new Entity
-            new_entity = Entity(name, alias)
+            new_entity = Entity(sub, alias)
 
             # Read parquet file with entity ids
-            df = self.safe_read(Path(Config.output_folder) / f"{name}.parquet", name)
+            df = self.safe_read(Path(Config.output_folder) / f"{filename}.parquet", filename)
 
             # Populate the new entity with ids
             new_entity.populate(df)
 
-            self.entities[name] = new_entity
+            self.entities[filename] = new_entity
 
     def construct_relations(self):
         for rel in Config.relations:
             # Read relation information
             file_name = rel["file_name"]
             relation_name = rel["relation_name"]
-            direction = Direction(rel["direction"])
+            direction = Direction[rel["direction"]]
             sub = rel["sub"]
             obj = rel["obj"]
 
@@ -89,8 +90,9 @@ class ModelConstructor:
                 Path(Config.output_folder) / f"{name}.parquet", name
             )
 
-            # Construct new Relation
+            # Construct new Feature
             new_feature = Feature(
+                name=name,
                 sub=entity,
                 mapping=df,
             )

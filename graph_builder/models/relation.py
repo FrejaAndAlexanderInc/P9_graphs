@@ -8,7 +8,7 @@ class Direction(Enum):
     forward = auto()
     backward = auto()
     bidirectional = auto()
-    none = ()
+    none = () 
 
     def direction_names(self) -> list[str]:
         return [d.name for d in Direction]

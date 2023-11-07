@@ -4,9 +4,11 @@ from models.entity import Entity
 class Feature:
     def __init__(
         self,
+        name: str,
         sub: Entity,
         mapping: pd.DataFrame,
     ):
+        self.name = name
         self.sub = sub
         self.mapping = self.construct_mapping(mapping)
         self.features_names = self.get_feature_names(mapping)

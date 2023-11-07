@@ -29,7 +29,7 @@ class SepsisDataExtractor(DataExctractor):
     def sepsis_cohort(self, obj: str) -> str:
         return f"select distinct subject_id as {obj} from masterthesis-401512.mimiciv_sepsis.sepsis_cohort_samples"
 
-    def patient(self, obj: str) -> str:
+    def patients(self, obj: str) -> str:
         return f"select distinct subject_id as {obj} from masterthesis-401512.mimiciv_sepsis.patient_samples"
 
     def admissions(self, obj: str) -> str:
@@ -49,24 +49,24 @@ class SepsisDataExtractor(DataExctractor):
 
     ### relations
 
-    def patient_diagnosis(self, sub: str, obj: str) -> str:
+    def patients_diagnosis(self, sub: str, obj: str) -> str:
         return f"select distinct subject_id {sub}, id as {obj} from `masterthesis-401512.mimiciv_sepsis.patient_diagnosis`"
 
-    def patient_medication(self, sub: str, obj: str) -> str:
+    def patients_medication(self, sub: str, obj: str) -> str:
         return f"select distinct subject_id {sub}, id as {obj} from `masterthesis-401512.mimiciv_sepsis.patient_medication`"
 
-    def patient_procedure(self, sub: str, obj: str) -> str:
+    def patients_procedures(self, sub: str, obj: str) -> str:
         return f"select distinct subject_id {sub}, id as {obj} from `masterthesis-401512.mimiciv_sepsis.patient_procedure`"
 
-    def patient_admissions(self, sub: str, obj: str) -> str:
+    def patients_admissions(self, sub: str, obj: str) -> str:
         return f"select distinct subject_id {sub}, hadm_id as {obj} from `masterthesis-401512.mimiciv_sepsis.patient_admissions`"
 
-    def patient_labevents(self, sub: str, obj: str) -> str:
+    def patients_labevents(self, sub: str, obj: str) -> str:
         return f"select distinct subject_id {sub}, id as {obj} from `masterthesis-401512.mimiciv_sepsis.patient_labevents`"
 
     ### features
 
-    def patient_features(self, sub: str) -> str:
+    def patients_features(self, sub: str) -> str:
         return f"""
             select 
                 subject_id {sub}, 
