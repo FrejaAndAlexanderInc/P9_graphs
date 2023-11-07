@@ -2,8 +2,9 @@ from graph_builder.config.Config import Config
 
 PROJECT_NAME = Config.project_id
 
-class MimicivHosp():
-    
+
+class MimicivHosp:
+
     admissions = f"`{PROJECT_NAME}.mimiciv_hosp.admissions`"
     d_hcpcs = f"`{PROJECT_NAME}.mimiciv_hosp.d_hcpcs`"
     d_icd_diagnoses = f"`{PROJECT_NAME}.mimiciv_hosp.d_icd_diagnoses`"
@@ -27,7 +28,8 @@ class MimicivHosp():
     services = f"`{PROJECT_NAME}.mimiciv_hosp.services`"
     transfers = f"`{PROJECT_NAME}.mimiciv_hosp.transfers`"
 
-class MimicivIcu():
+
+class MimicivIcu:
 
     caregiver = f"`{PROJECT_NAME}.mimiciv_icu.caregiver`"
     chartevents = f"`{PROJECT_NAME}.mimiciv_icu.chartevents`"
@@ -39,13 +41,16 @@ class MimicivIcu():
     outputevents = f"`{PROJECT_NAME}.mimiciv_icu.outputevents`"
     procedureevents = f"`{PROJECT_NAME}.mimiciv_icu.procedureevents`"
 
-class MimicIvEd():
+
+class MimicIvEd:
     pass
 
-class MimicIvDerived():
+
+class MimicIvDerived:
     sepsis3 = f"`{PROJECT_NAME}.mimiciv_derived.sepsis3`"
 
-class MimicIvSepsis():
+
+class MimicIvSepsis:
     sepsis_cohort = f"`{PROJECT_NAME}.mimiciv_sepsis.sepsis_cohort`"
     patient_samples = f"`{PROJECT_NAME}.mimiciv_sepsis.patient_samples`"
     used_subject_ids = f"`{PROJECT_NAME}.mimiciv_sepsis.used_subject_ids`"

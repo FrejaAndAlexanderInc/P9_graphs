@@ -3,14 +3,16 @@ import torch as th
 from graph_builder.models.entity import Entity
 from enum import Enum, auto
 
+
 class Direction(Enum):
-    forward = auto() 
+    forward = auto()
     backward = auto()
     bidirectional = auto()
-    none = () 
+    none = ()
 
     def direction_names(self) -> list[str]:
         return [d.name for d in Direction]
+
 
 class Relation:
     def __init__(
@@ -19,7 +21,7 @@ class Relation:
         obj: Entity,
         relation_name: str,
         mapping: DataFrame,
-        aux: bool =False
+        aux: bool = False,
     ):
         self.relation_name = relation_name
         self.direction = Direction.bidirectional
@@ -60,14 +62,28 @@ class Relation:
 
         # Create relations based on directionality
         if self.direction == Direction.forward:
-            relations_dict[(sub_alias, rel_name, obj_alias)] = (subject_tensor, object_tensor)
+            relations_dict[(sub_alias, rel_name, obj_alias)] = (
+                subject_tensor,
+                object_tensor,
+            )
         elif self.direction == Direction.backward:
-            relations_dict[(obj_alias, rel_name_reverse, sub_alias)] = (object_tensor, subject_tensor)
+            relations_dict[(obj_alias, rel_name_reverse, sub_alias)] = (
+                object_tensor,
+                subject_tensor,
+            )
         elif self.direction == Direction.bidirectional:
-            relations_dict[(sub_alias, rel_name, obj_alias)] = (subject_tensor, object_tensor)
-            relations_dict[(obj_alias, rel_name_reverse, sub_alias)] = (object_tensor, subject_tensor)
+            relations_dict[(sub_alias, rel_name, obj_alias)] = (
+                subject_tensor,
+                object_tensor,
+            )
+            relations_dict[(obj_alias, rel_name_reverse, sub_alias)] = (
+                object_tensor,
+                subject_tensor,
+            )
 
-        print(f'Constructed {self.direction} relation {rel_name} between '
-              f'{len(set(sub_values))} {sub_alias} and {len(set(obj_values))} {obj_alias}')
+        print(
+            f"Constructed {self.direction} relation {rel_name} between "
+            f"{len(set(sub_values))} {sub_alias} and {len(set(obj_values))} {obj_alias}"
+        )
 
         return relations_dict

@@ -22,8 +22,9 @@ from tensorboardX import SummaryWriter
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 
+
 class GNNStack(nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim, task='node'):
+    def __init__(self, input_dim, hidden_dim, output_dim, task="node"):
         super(GNNStack, self).__init__()
         self.task = task
         self.convs = nn.ModuleList()
@@ -36,26 +37,33 @@ class GNNStack(nn.Module):
 
         # post-message-passing
         self.post_mp = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim), nn.Dropout(0.25), 
-            nn.Linear(hidden_dim, output_dim))
-        if not (self.task == 'node' or self.task == 'graph'):
-            raise RuntimeError('Unknown task.')
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.Dropout(0.25),
+            nn.Linear(hidden_dim, output_dim),
+        )
+        if not (self.task == "node" or self.task == "graph"):
+            raise RuntimeError("Unknown task.")
 
         self.dropout = 0.25
         self.num_layers = 3
 
     def build_conv_model(self, input_dim, hidden_dim):
         # refer to pytorch geometric nn module for different implementation of GNNs.
-        if self.task == 'node':
+        if self.task == "node":
             return pyg_nn.GCNConv(input_dim, hidden_dim)
         else:
-            return pyg_nn.GINConv(nn.Sequential(nn.Linear(input_dim, hidden_dim),
-                                  nn.ReLU(), nn.Linear(hidden_dim, hidden_dim)))
+            return pyg_nn.GINConv(
+                nn.Sequential(
+                    nn.Linear(input_dim, hidden_dim),
+                    nn.ReLU(),
+                    nn.Linear(hidden_dim, hidden_dim),
+                )
+            )
 
     def forward(self, data):
         x, edge_index, batch = data.x, data.edge_index, data.batch
         if data.num_node_features == 0:
-          x = torch.ones(data.num_nodes, 1)
+            x = torch.ones(data.num_nodes, 1)
 
         for i in range(self.num_layers):
             x = self.convs[i](x, edge_index)
@@ -65,7 +73,7 @@ class GNNStack(nn.Module):
             if not i == self.num_layers - 1:
                 x = self.lns[i](x)
 
-        if self.task == 'graph':
+        if self.task == "graph":
             x = pyg_nn.global_mean_pool(x, batch)
 
         x = self.post_mp(x)
@@ -75,28 +83,35 @@ class GNNStack(nn.Module):
     def loss(self, pred, label):
         return F.nll_loss(pred, label)
 
+
 def train(dataset, task: str, writer):
-    if task == 'graph':
+    if task == "graph":
         data_size = len(dataset)
-        loader = DataLoader(dataset[:int(data_size * 0.8)], batch_size=64, shuffle=True)
-        test_loader = DataLoader(dataset[int(data_size * 0.8):], batch_size=64, shuffle=True)
+        loader = DataLoader(
+            dataset[: int(data_size * 0.8)], batch_size=64, shuffle=True
+        )
+        test_loader = DataLoader(
+            dataset[int(data_size * 0.8) :], batch_size=64, shuffle=True
+        )
     else:
         test_loader = loader = DataLoader(dataset, batch_size=64, shuffle=True)
 
     # build model
-    model = GNNStack(max(dataset.num_node_features, 1), 32, dataset.num_classes, task=task)
+    model = GNNStack(
+        max(dataset.num_node_features, 1), 32, dataset.num_classes, task=task
+    )
     opt = optim.Adam(model.parameters(), lr=0.01)
-    
+
     # train
     for epoch in range(200):
         total_loss = 0
         model.train()
         for batch in loader:
-            #print(batch.train_mask, '----')
+            # print(batch.train_mask, '----')
             opt.zero_grad()
             embedding, pred = model(batch)
             label = batch.y
-            if task == 'node':
+            if task == "node":
                 pred = pred[batch.train_mask]
                 label = label[batch.train_mask]
             loss = model.loss(pred, label)
@@ -108,11 +123,15 @@ def train(dataset, task: str, writer):
 
         if epoch % 10 == 0:
             test_acc = test(test_loader, model)
-            print("Epoch {}. Loss: {:.4f}. Test accuracy: {:.4f}".format(
-                epoch, total_loss, test_acc))
+            print(
+                "Epoch {}. Loss: {:.4f}. Test accuracy: {:.4f}".format(
+                    epoch, total_loss, test_acc
+                )
+            )
             writer.add_scalar("test accuracy", test_acc, epoch)
 
     return model
+
 
 def test(loader, model, is_validation=False):
     model.eval()
@@ -124,35 +143,36 @@ def test(loader, model, is_validation=False):
             pred = pred.argmax(dim=1)
             label = data.y
 
-        if model.task == 'node':
+        if model.task == "node":
             mask = data.val_mask if is_validation else data.test_mask
             # node classification: only evaluate on nodes in test set
             pred = pred[mask]
             label = data.y[mask]
-            
+
         correct += pred.eq(label).sum().item()
-    
-    if model.task == 'graph':
-        total = len(loader.dataset) 
+
+    if model.task == "graph":
+        total = len(loader.dataset)
     else:
         total = 0
         for data in loader.dataset:
             total += torch.sum(data.test_mask).item()
     return correct / total
 
+
 writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
 
-dataset = TUDataset(root='/tmp/ENZYMES', name='ENZYMES')
+dataset = TUDataset(root="/tmp/ENZYMES", name="ENZYMES")
 dataset = dataset.shuffle()
-task = 'graph'
+task = "graph"
 
 model = train(dataset, task, writer)
 
 # ----------------
 writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
 
-dataset = Planetoid(root='/tmp/cora', name='cora')
-task = 'node'
+dataset = Planetoid(root="/tmp/cora", name="cora")
+task = "node"
 
 model = train(dataset, task, writer)
 

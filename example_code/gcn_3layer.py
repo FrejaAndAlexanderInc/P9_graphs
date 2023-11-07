@@ -4,9 +4,9 @@ import torch.nn.functional as F
 import torch.nn as nn
 from dgl.nn import GraphConv
 
+
 class GCN3L(nn.Module):
-    """Example 2 layer GCN
-    """
+    """Example 2 layer GCN"""
 
     def __init__(self, in_feats: int, h1_feats: int, h2_feats: int, num_classes: int):
         super(GCN3L, self).__init__()

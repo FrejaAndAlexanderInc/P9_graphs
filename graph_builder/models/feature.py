@@ -1,2 +1,2 @@
-class Feature():
+class Feature:
     pass

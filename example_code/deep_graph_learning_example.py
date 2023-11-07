@@ -1,6 +1,7 @@
 import os
 
 from gcn_3layer import GCN3L
+
 os.environ["DGLBACKEND"] = "pytorch"
 
 import dgl
@@ -15,14 +16,14 @@ from sklearn.metrics import f1_score
 
 CUDA = True
 
+
 class GCN(nn.Module):
-    """Example 2 layer GCN
-    """
+    """Example 2 layer GCN"""
 
     def __init__(self, in_feats: int, h_feats: int, num_classes: int):
         """
         Args:
-            in_feats (int): number of input features for each node 
+            in_feats (int): number of input features for each node
             h_feats (int): number of hidden features or dimensions in the intermediate GCN layer
             num_classes (int): number of output classes or categories in the classification task
         """
@@ -31,12 +32,12 @@ class GCN(nn.Module):
         self.conv2 = GraphConv(h_feats, num_classes)
 
     def forward(self, g: dgl.DGLGraph, in_feat: torch.Tensor) -> torch.Tensor:
-        """defines the forward pass of the GCN model. 
+        """defines the forward pass of the GCN model.
         It specifies how the input data should be transformed as it passes through the layers.
 
         Args:
-            g (dgl.DGLGraph): input graph 
-            in_feat (torch.Tensor): node features as a Tensor 
+            g (dgl.DGLGraph): input graph
+            in_feat (torch.Tensor): node features as a Tensor
 
         Returns:
             torch.Tensor: unnormalized scores for each class
@@ -47,19 +48,20 @@ class GCN(nn.Module):
         return h
 
 
-# dataset 
+# dataset
 dataset = dgl.data.CoraGraphDataset()
 print(f"Number of categories: {dataset.num_classes}")
 
-# A DGL Dataset object may contain one or multiple graphs. 
+# A DGL Dataset object may contain one or multiple graphs.
 # The Cora dataset used only consists of one single graph.
 graph = dataset[0]
 
 print("Node features")
-print(graph.ndata['train_mask'])
+print(graph.ndata["train_mask"])
 print("Edge features")
 print(graph.edata.keys())
-print(graph.ndata['feat'][0])
+print(graph.ndata["feat"][0])
+
 
 def train(g, model, epochs=100, learning_rate=0.01):
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -86,9 +88,21 @@ def train(g, model, epochs=100, learning_rate=0.01):
         # Compute accuracy on training/validation/test
 
         # f1 for validation and test set is done each epoch
-        train_f1 = f1_score(labels[train_mask].cpu().numpy(), pred[train_mask].cpu().numpy(), average='macro')
-        val_f1 = f1_score(labels[val_mask].cpu().numpy(), pred[val_mask].cpu().numpy(), average='macro')
-        test_f1 = f1_score(labels[test_mask].cpu().numpy(), pred[test_mask].cpu().numpy(), average='macro')
+        train_f1 = f1_score(
+            labels[train_mask].cpu().numpy(),
+            pred[train_mask].cpu().numpy(),
+            average="macro",
+        )
+        val_f1 = f1_score(
+            labels[val_mask].cpu().numpy(),
+            pred[val_mask].cpu().numpy(),
+            average="macro",
+        )
+        test_f1 = f1_score(
+            labels[test_mask].cpu().numpy(),
+            pred[test_mask].cpu().numpy(),
+            average="macro",
+        )
 
         # train_acc = (pred[train_mask] == labels[train_mask]).float().mean()
         # val_acc = (pred[val_mask] == labels[val_mask]).float().mean()
@@ -114,8 +128,8 @@ model = GCN(graph.ndata["feat"].shape[1], 32, dataset.num_classes)
 model3l = GCN3L(graph.ndata["feat"].shape[1], 32, 16, dataset.num_classes)
 
 if CUDA:
-    graph = graph.to('cuda')
-    model = model.to('cuda')
-    model3l = model.to('cuda')
+    graph = graph.to("cuda")
+    model = model.to("cuda")
+    model3l = model.to("cuda")
 
 train(graph, model3l, 100, 0.01)

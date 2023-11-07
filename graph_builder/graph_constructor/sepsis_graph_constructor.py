@@ -1,8 +1,9 @@
 from pathlib import Path
 from graph_builder.graph_constructor.graph_constructor import GraphConstructor
-import pandas as pd 
+import pandas as pd
 from graph_builder.config.Config import Config
 from graph_builder.models.relation import Relation
+
 
 class SepsisGraphConstructor(GraphConstructor):
     def __init__(self):
@@ -11,16 +12,18 @@ class SepsisGraphConstructor(GraphConstructor):
     def construct_relations(self):
         for rel in Config.relations:
             # Read relation information
-            file_name = rel['file_name']
-            relation_name = rel['relation_name']
-            direction = rel['direction']
-            sub = rel['sub']
-            obj = rel['obj']
+            file_name = rel["file_name"]
+            relation_name = rel["relation_name"]
+            direction = rel["direction"]
+            sub = rel["sub"]
+            obj = rel["obj"]
             entity1 = self.graph.get_entity(sub)
             entity2 = self.graph.get_entity(obj)
 
             # Read parquet file with entity ids
-            mapping_df = pd.read_parquet(Path(Config.output_folder) / f'{file_name}.parquet')
+            mapping_df = pd.read_parquet(
+                Path(Config.output_folder) / f"{file_name}.parquet"
+            )
 
             # Construct new Relation
             new_relation = Relation(

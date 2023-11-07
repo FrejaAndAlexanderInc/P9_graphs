@@ -1,4 +1,5 @@
 import torch as th
+
 # from ..utils.plotting import plot
 
 
@@ -13,27 +14,27 @@ class MimicIVExtractor(Flow):
         """
         super(MimicIVExtractor, self).__init__(args)
 
-        self.diag_level = self.conf['general']['diag_level']
-        self.aux_relations = self.conf['general']['aux_relations']
-        self.aux_features = self.conf['general']['aux_features']
-        self.feature_scale = self.conf['general']['feature_scale']
-        self.plot_aux_feats = self.conf['general']['plot_aux_feats']
+        self.diag_level = self.conf["general"]["diag_level"]
+        self.aux_relations = self.conf["general"]["aux_relations"]
+        self.aux_features = self.conf["general"]["aux_features"]
+        self.feature_scale = self.conf["general"]["feature_scale"]
+        self.plot_aux_feats = self.conf["general"]["plot_aux_feats"]
 
     def run_flow(self):
         self.construct_graph()
 
         # Generate data split
-        self.graph.add_data_split('S', 0.8, 0.1)
-        self.gen_labels('S', 'S-D')
+        self.graph.add_data_split("S", 0.8, 0.1)
+        self.gen_labels("S", "S-D")
 
         # Drop relations from graph
-        self.graph.drop_relations([('S', 'S-D', 'D'), ('D', 'D-S', 'S')])
+        self.graph.drop_relations([("S", "S-D", "D"), ("D", "D-S", "S")])
 
         # Add domain features to the graph
         self.add_aux_features()
 
         # Add extra information to graph
-        self.graph.add_extra(self.diag_level, 'diag_level')
+        self.graph.add_extra(self.diag_level, "diag_level")
 
         # Save Graph
         self.graph.save_graph(self.path["output_fold"])
