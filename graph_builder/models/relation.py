@@ -3,7 +3,6 @@ import torch as th
 from graph_builder.models.entity import Entity
 from enum import Enum, auto
 
-
 class Direction(Enum):
     forward = auto()
     backward = auto()
@@ -12,7 +11,6 @@ class Direction(Enum):
 
     def direction_names(self) -> list[str]:
         return [d.name for d in Direction]
-
 
 class Relation:
     def __init__(

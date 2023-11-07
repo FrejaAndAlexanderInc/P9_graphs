@@ -18,13 +18,15 @@ class ModelConstructor:
         self.relations: dict[str, Relation] = {}
         self.features: dict[str, Feature] = {}
 
-    def build(self):
+    def build(self) -> tuple[dict, dict, dict]:
         """Loads every parquet file and converts them to entity, relation and feature objects. 
         """
         self.construct_entities()
         self.construct_features()
         self.construct_relations()
         self.combine_patients()
+
+        return self.entities, self.relations, self.features
 
     def combine_patients(self):
         """Combine the both the patients with and without sepsis. 

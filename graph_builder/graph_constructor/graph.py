@@ -8,13 +8,18 @@ from graph_builder.models.entity import Entity
 from graph_builder.models.relation import Relation
 import dgl
 
-
 class Graph:
-    def __init__(self):
-        self.entities = dict()
-        self.relations = dict()
+    def __init__(
+        self, 
+        entities: dict[str, Entity], 
+        relations: dict[str, Entity], 
+        features: dict[str, Entity]
+    ):
+        self.entities = entities
+        self.relations = relations
+        self.features = features
         self.graph = None
-        self.extras = dict()
+        self.extras = dict() # ?
 
     def add_extra(self, extra, name):
         self.extras[name] = extra
