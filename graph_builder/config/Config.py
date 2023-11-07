@@ -19,8 +19,9 @@ class Config:
     project_id: str
     database: str
     connection: Credentials
-    entities: list[str]
-    relations: list[dict]
+    entities: list[dict[str, str]]
+    relations: list[dict[str, str]]
+    features: list[dict[str, str]]
     output_folder: str
 
     @classmethod
@@ -38,6 +39,7 @@ class Config:
         extractor_config = cls.__read_extractor_config(extractor_config_path)
         cls.entities = extractor_config['entities']
         cls.relations = extractor_config['relations']
+        cls.features = extractor_config['features']
         cls.output_folder = extractor_config['output_folder']
 
     @staticmethod

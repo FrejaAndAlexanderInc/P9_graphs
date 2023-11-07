@@ -1,3 +1,16 @@
+DROP TABLE IF EXISTS `masterthesis-401512.mimiciv_sepsis.sepsis_cohort_samples`;
+create table `masterthesis-401512.mimiciv_sepsis.sepsis_cohort_samples` as
+select * from `masterthesis-401512.mimiciv_sepsis.sepsis_cohort`
+limit 200;
+
+DROP TABLE IF EXISTS `masterthesis-401512.mimiciv_sepsis.used_subject_ids`;
+create table `masterthesis-401512.mimiciv_sepsis.used_subject_ids` as
+select distinct subject_id from `masterthesis-401512.mimiciv_sepsis.patient_samples`
+union all 
+SELECT distinct subject_id FROM `masterthesis-401512.mimiciv_sepsis.sepsis_cohort_samples`;
+
+-- missing sepsis chort...
+
 -- entities
 drop table if exists `masterthesis-401512.mimiciv_sepsis.diagnosis`;
 CREATE TABLE `masterthesis-401512.mimiciv_sepsis.diagnosis` AS
@@ -55,21 +68,32 @@ where
     pr.subject_id in     
         (select subject_id from `masterthesis-401512.mimiciv_sepsis.used_subject_ids`);
 
+-- labevents, max 10 latest labevents per subject_id
 drop table if exists `masterthesis-401512.mimiciv_sepsis.labevents`;
 CREATE TABLE `masterthesis-401512.mimiciv_sepsis.labevents` as 
-select 
-    lab.subject_id, 
-    lab.valuenum, 
-    lab.valueuom, 
-    lab.ref_range_lower, 
-    lab.ref_range_upper, 
-    lab.flag,
-    lab.labevent_id as id
-from `masterthesis-401512.mimiciv_hosp.labevents` lab
-inner join `masterthesis-401512.mimiciv_hosp.d_labitems` item on
-lab.itemid = item.itemid
-where lab.subject_id in     
-    (select subject_id from `masterthesis-401512.mimiciv_sepsis.used_subject_ids`);
+WITH RankedData AS (
+  SELECT
+    subject_id,
+    valuenum,
+    valueuom,
+    ref_range_lower,
+    ref_range_upper,
+    flag,
+    labevent_id AS id,
+    ROW_NUMBER() OVER (PARTITION BY subject_id ORDER BY charttime DESC) AS row_num
+  FROM `masterthesis-401512.mimiciv_hosp.labevents` lab
+  WHERE subject_id IN (SELECT subject_id FROM `masterthesis-401512.mimiciv_sepsis.used_subject_ids`)
+)
+SELECT
+  subject_id,
+  valuenum,
+  valueuom,
+  ref_range_lower,
+  ref_range_upper,
+  flag,
+  id
+FROM RankedData
+WHERE row_num <= 10;
 
 -- relations
 -- patient_diagnosis
@@ -103,4 +127,6 @@ where
 drop table if exists `masterthesis-401512.mimiciv_sepsis.patient_labevents`;
 CREATE TABLE `masterthesis-401512.mimiciv_sepsis.patient_labevents` as 
 select distinct subject_id, id
-from `masterthesis-401512.mimiciv_sepsis.labevents`
+from `masterthesis-401512.mimiciv_sepsis.labevents` l
+where l.subject_id in
+(select subject_id from `masterthesis-401512.mimiciv_sepsis.used_subject_ids`)
