@@ -7,7 +7,7 @@ class Direction(Enum):
     forward = auto() 
     backward = auto()
     bidirectional = auto()
-    none = ()
+    none = () 
 
     def direction_names(self) -> list[str]:
         return [d.name for d in Direction]
@@ -59,11 +59,11 @@ class Relation:
         rel_name_reverse = rel_name[::-1]
 
         # Create relations based on directionality
-        if self.direction == 'forward':
+        if self.direction == Direction.forward:
             relations_dict[(sub_alias, rel_name, obj_alias)] = (subject_tensor, object_tensor)
-        elif self.direction == 'backward':
+        elif self.direction == Direction.backward:
             relations_dict[(obj_alias, rel_name_reverse, sub_alias)] = (object_tensor, subject_tensor)
-        elif self.direction == 'bidirectional':
+        elif self.direction == Direction.bidirectional:
             relations_dict[(sub_alias, rel_name, obj_alias)] = (subject_tensor, object_tensor)
             relations_dict[(obj_alias, rel_name_reverse, sub_alias)] = (object_tensor, subject_tensor)
 
