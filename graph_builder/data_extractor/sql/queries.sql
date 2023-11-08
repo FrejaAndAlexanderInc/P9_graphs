@@ -15,7 +15,7 @@ SELECT distinct subject_id FROM `masterthesis-401512.mimiciv_sepsis.sepsis_cohor
 drop table if exists `masterthesis-401512.mimiciv_sepsis.diagnosis`;
 CREATE TABLE `masterthesis-401512.mimiciv_sepsis.diagnosis` AS
 SELECT
-  GENERATE_UUID() AS id,
+  DENSE_RANK() OVER (ORDER BY d.icd_code, d.icd_version) AS id,
   d.subject_id,
   d.icd_code,
   d.icd_version
@@ -36,7 +36,7 @@ from
 (
     select  
         ph.medication,
-        GENERATE_UUID() AS id
+        row_number() over () as id
     from `masterthesis-401512.mimiciv_hosp.pharmacy` ph
     join `masterthesis-401512.mimiciv_hosp.patients` pa
         on ph.subject_id = pa.subject_id
@@ -46,14 +46,11 @@ from
     limit 50
 ) top
 join `masterthesis-401512.mimiciv_hosp.pharmacy` p
-on top.medication = p.medication;
+on top.medication = p.medication
 
 drop table if exists `masterthesis-401512.mimiciv_sepsis.admissions`;
 CREATE TABLE `masterthesis-401512.mimiciv_sepsis.admissions` as 
-select distinct 
-    subject_id, 
-    hadm_id 
-from `masterthesis-401512.mimiciv_hosp.admissions` a
+select distinct subject_id, hadm_id from `masterthesis-401512.mimiciv_hosp.admissions` a
 where a.subject_id in
 (select subject_id from `masterthesis-401512.mimiciv_sepsis.used_subject_ids`);
 
@@ -63,7 +60,7 @@ select
     icd_code, 
     icd_version,
     subject_id,
-    GENERATE_UUID() AS id
+    DENSE_RANK() OVER (ORDER BY icd_code, icd_version) AS id
 from `masterthesis-401512.mimiciv_hosp.procedures_icd` pr
 where 
     icd_code is not null and 
@@ -105,7 +102,7 @@ CREATE TABLE `masterthesis-401512.mimiciv_sepsis.patient_diagnosis` as
 select distinct subject_id, id
 from `masterthesis-401512.mimiciv_sepsis.diagnosis` d
 where d.subject_id in
-(select subject_id from `masterthesis-401512.mimiciv_sepsis.used_subject_ids`);
+(select subject_id from `masterthesis-401512.mimiciv_sepsis.used_subject_ids`)
 
 -- patient_medication
 drop table if exists `masterthesis-401512.mimiciv_sepsis.patient_medication`;
@@ -113,7 +110,7 @@ CREATE TABLE `masterthesis-401512.mimiciv_sepsis.patient_medication` as
 select distinct subject_id, id
 from `masterthesis-401512.mimiciv_sepsis.medication` m
 where m.subject_id in
-(select subject_id from `masterthesis-401512.mimiciv_sepsis.used_subject_ids`);
+(select subject_id from `masterthesis-401512.mimiciv_sepsis.used_subject_ids`)
 
 -- patient_procedure
 drop table if exists `masterthesis-401512.mimiciv_sepsis.patient_procedure`;
@@ -124,7 +121,7 @@ where
     icd_code is not null and 
     icd_version is not null and 
     pr.subject_id in     
-        (select subject_id from `masterthesis-401512.mimiciv_sepsis.used_subject_ids`);
+        (select subject_id from `masterthesis-401512.mimiciv_sepsis.used_subject_ids`)
 
 -- patient_labevents
 drop table if exists `masterthesis-401512.mimiciv_sepsis.patient_labevents`;
@@ -132,4 +129,4 @@ CREATE TABLE `masterthesis-401512.mimiciv_sepsis.patient_labevents` as
 select distinct subject_id, id
 from `masterthesis-401512.mimiciv_sepsis.labevents` l
 where l.subject_id in
-(select subject_id from `masterthesis-401512.mimiciv_sepsis.used_subject_ids`);
+(select subject_id from `masterthesis-401512.mimiciv_sepsis.used_subject_ids`)
