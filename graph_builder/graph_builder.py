@@ -1,3 +1,4 @@
+import inspect
 import pickle
 
 import numpy as np
@@ -23,16 +24,18 @@ class GraphBuilder:
         # self.labels: pd.Series = self.get_labels() # series of bools
         self.extras = dict() # ?
 
-    def get_labels(self) -> pd.Series:
+    def __get_labels(self) -> th.Tensor:
         """Get the labels from features. 
         Will return a Series of booleans, where the index maps to the corresponding patient.
         Label is wether they have sepsis or not ie. 1 or 0. 
 
         Returns:
-            pd.Series: Series of labels
+            th.Tensor: Series of labels
         """
         mapping_df = self.features['patients_features'].mapping
-        return mapping_df.set_index('patients', drop=False)['has_sepsis']
+        labels = mapping_df.set_index('patients', drop=False)['has_sepsis']
+
+        return th.tensor(labels.values)
 
     # def add_extra(self, extra, name):
     #     self.extras[name] = extra
@@ -73,17 +76,24 @@ class GraphBuilder:
             )
 
     def reindex_graph(self):
+        """DGL graphs only work where node ids are consecutive integers from 0 to n-1,
+        where n is the number of nodes. So, index all nodes and relations. 
+        """
+
         # For each entity, find the relations using the entity as either sub or obj.
         # Find the set of all entity ids and create mapping for backward compatability.
-        for entity_name in self.entities.keys():
-            ids = set()
-            for relation in self.relations.values():
-                # If entity used in relation it should be re-indexed
-                if entity_name in [relation.sub.name, relation.obj.name]:
-                    ids = ids.union(set(relation.mapping[entity_name].unique()))
+        # for entity_name in self.entities.keys():
+        #     ids = set()
+        #     for relation in self.relations.values():
+        #         # If entity used in relation it should be re-indexed
+        #         if entity_name in [relation.sub.name, relation.obj.name]:
+        #             ids = ids.union(set(relation.mapping[entity_name].unique()))
 
-            # Reindex the entity
-            self.entities[entity_name].reindex(ids)
+        #     # Reindex the entity
+        #     self.entities[entity_name].reindex(ids)
+
+        for entity_name in self.entities.keys():
+            self.entities[entity_name].reindex()
 
         # Reindex relation mappings
         for relation in self.relations.values():
@@ -96,27 +106,38 @@ class GraphBuilder:
                 relation.obj.maps["origin-reindex"]
             )
 
-    def create_graph(self) -> dgl.DGLGraph:
+        for feature in self.features.values():
+            sub_name = feature.sub.name
+            feature.mapping[sub_name] = feature.mapping[sub_name].map(
+                feature.sub.maps["origin-reindex"]
+            )
+
+    def add_features_to_graph(self) -> None:
+        """"""
+        return ...
+
+    def create_graph(self) -> tuple[dgl.DGLGraph, th.Tensor]:
         """Creates the DGL graph. 
         DGL gievs in incorrect node_count per node_type, as it uses the max id of a node_type
         to determine the count. 
 
         Returns:
-            dgl.DGLGraph: The graph
+            tuple[dgl.DGLGraph, th.Tensor]: The graph, and labels
         """
-
         graph_relations = dict()
+        self.reindex_graph()
+
+        self.add_features_to_graph()
 
         # Construct relations for subsequent graph construction
         print(f"Adding data relations to graph")
         for relation in [rel for rel in self.relations.values() if rel.aux is False]:
             graph_relations.update(relation.construct_graph_relations())
 
-        # Construct relations for subsequent graph construction
-        self.graph = dgl.heterograph(data_dict=graph_relations) # type: ignore
+        self.graph = dgl.heterograph(graph_relations)
         
         print(f"\nCreated DGL graph")
-        return self.graph
+        return self.graph, self.__get_labels()
 
     def change_relation_direction(self, relation_name: str, direction: str):
         if relation_name in self.relations:
@@ -168,42 +189,6 @@ class GraphBuilder:
             bool_mask[ids] = 1
             self.graph.nodes[ntype].data[mask] = bool_mask
 
-    def add_aux_relations(self, relations: dict):
-        # Add each feature to the graph
-        for (sub, obj), relation in relations.items():
-            if sub not in self.entities or obj not in self.entities:
-                print(f"Entity {sub} or {obj} not in graph, can't add relation")
-            else:
-                self.add_aux_relation(sub, obj, relation[0], relation[1])
-
-    def add_aux_relation(self, sub, obj, pairs, direction):
-        sources, targets = [], []
-
-        subject_map = self.entities[sub].maps["origin-reindex"]
-        object_map = self.entities[obj].maps["origin-reindex"]
-
-        for s, o in pairs:
-            if s in subject_map and o in object_map:
-                sources.append(subject_map[s])
-                targets.append(object_map[o])
-
-        df = pd.DataFrame({sub: sources, obj: targets})
-        sub_alias = self.entities[sub].alias
-        obj_alias = self.entities[obj].alias
-
-        # Construct new Relation
-        new_relation = Relation(
-            sub=self.entities[sub],
-            obj=self.entities[obj],
-            relation_name=f"{sub_alias}-{obj_alias}",
-            mapping=df,
-            aux=True,
-        )
-
-        new_relation.set_direction(direction)
-
-        self.add_relation(new_relation)
-
     def scale_features(self, features, feature_scale, hrchys):
         for entity, feature in features.items():
             if self.is_entity_in_graph(entity):
@@ -235,50 +220,6 @@ class GraphBuilder:
             self.graph.nodes[alias].data["h"] * scale_tensor[None, :]
         )
 
-    def add_aux_features(self, features: dict):
-        # Add each feature to the graph
-        print("Adding aux features to graph")
-        for entity, feature in features.items():
-            if self.is_entity_in_graph(entity):
-                self.add_aux_feature(entity, feature)
-            else:
-                print(f"Entity {entity} not in graph, can't add features")
-
-    def add_aux_feature(self, entity: str, feature: dict):
-        # Get entity name alias for which we want to add features
-        alias = self.entities[entity].alias
-        entity_ids = self.entities[entity].ids
-        zero_string = ""
-
-        # Map features dict to new keys using the entity origin-reindex map
-        # This also automatically drops non_mappable rows
-        origin_reindex = self.entities[entity].maps["origin-reindex"]
-        feature = {
-            origin_reindex[key]: val
-            for key, val in feature.items()
-            if key in origin_reindex
-        }
-
-        # Check that we have a feature for each entity sample
-        if len(feature) != len(entity_ids):
-
-            # If we are missing features for some entities, we zero initialize them
-            if len(feature) < len(entity_ids):
-                zero_string = f"with {len(entity_ids) - len(feature)} zero initialized"
-                feature = self.zero_initialize_missing_features(feature, entity_ids)
-
-            # If we have too many features for some entities, we can't continue
-            if len(feature) > len(entity_ids):
-                exit(
-                    "Num feature vectors and num of entities do not correspond, can't continue"
-                )
-
-        # Sort dataframe
-        feature = {key: feature[key] for key in sorted(feature.keys())}
-
-        # Add features to graph
-        self.graph.nodes[alias].data["h"] = th.stack(list(feature.values()))
-        print(f"Added {feature[0].shape[0]} dim {entity} feats to graph {zero_string}")
 
     def zero_initialize_missing_features(self, feature: dict, entity_ids: set) -> dict:
         # Create zero tensor of same length as the other embeddings
@@ -309,3 +250,86 @@ class GraphBuilder:
             return True
         else:
             return False
+
+
+    # def add_aux_relations(self, relations: dict):
+    #     # Add each feature to the graph
+    #     for (sub, obj), relation in relations.items():
+    #         if sub not in self.entities or obj not in self.entities:
+    #             print(f"Entity {sub} or {obj} not in graph, can't add relation")
+    #         else:
+    #             self.add_aux_relation(sub, obj, relation[0], relation[1])
+
+    # def add_aux_feature(self, entity: str, feature: dict):
+    #     # Get entity name alias for which we want to add features
+    #     alias = self.entities[entity].alias
+    #     entity_ids = self.entities[entity].ids
+    #     zero_string = ""
+
+    #     # Map features dict to new keys using the entity origin-reindex map
+    #     # This also automatically drops non_mappable rows
+    #     origin_reindex = self.entities[entity].maps["origin-reindex"]
+    #     feature = {
+    #         origin_reindex[key]: val
+    #         for key, val in feature.items()
+    #         if key in origin_reindex
+    #     }
+
+    #     # Check that we have a feature for each entity sample
+    #     if len(feature) != len(entity_ids):
+
+    #         # If we are missing features for some entities, we zero initialize them
+    #         if len(feature) < len(entity_ids):
+    #             zero_string = f"with {len(entity_ids) - len(feature)} zero initialized"
+    #             feature = self.zero_initialize_missing_features(feature, entity_ids)
+
+    #         # If we have too many features for some entities, we can't continue
+    #         if len(feature) > len(entity_ids):
+    #             exit(
+    #                 "Num feature vectors and num of entities do not correspond, can't continue"
+    #             )
+
+    #     # Sort dataframe
+    #     feature = {key: feature[key] for key in sorted(feature.keys())}
+
+    #     # Add features to graph
+    #     self.graph.nodes[alias].data["h"] = th.stack(list(feature.values()))
+    #     print(f"Added {feature[0].shape[0]} dim {entity} feats to graph {zero_string}")
+
+    
+    # def add_aux_features(self, features: dict):
+    #     # Add each feature to the graph
+    #     print("Adding aux features to graph")
+    #     for entity, feature in features.items():
+    #         if self.is_entity_in_graph(entity):
+    #             self.add_aux_feature(entity, feature)
+    #         else:
+    #             print(f"Entity {entity} not in graph, can't add features")
+
+    # def add_aux_relation(self, sub, obj, pairs, direction):
+    #     sources, targets = [], []
+
+    #     subject_map = self.entities[sub].maps["origin-reindex"]
+    #     object_map = self.entities[obj].maps["origin-reindex"]
+
+    #     for s, o in pairs:
+    #         if s in subject_map and o in object_map:
+    #             sources.append(subject_map[s])
+    #             targets.append(object_map[o])
+
+    #     df = pd.DataFrame({sub: sources, obj: targets})
+    #     sub_alias = self.entities[sub].alias
+    #     obj_alias = self.entities[obj].alias
+
+    #     # Construct new Relation
+    #     new_relation = Relation(
+    #         sub=self.entities[sub],
+    #         obj=self.entities[obj],
+    #         relation_name=f"{sub_alias}-{obj_alias}",
+    #         mapping=df,
+    #         aux=True,
+    #     )
+
+    #     new_relation.set_direction(direction)
+
+    #     self.add_relation(new_relation)
