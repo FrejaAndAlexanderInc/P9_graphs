@@ -3,10 +3,10 @@ from pathlib import Path
 from typing import Optional, Union
 import pandas as pd
 from graph_builder.models.relation import Direction
-from models.entity import Entity
-from models.relation import Relation
-from models.feature import Feature
-from config.Config import Config
+from graph_builder.models.entity import Entity
+from graph_builder.models.relation import Relation
+from graph_builder.models.feature import Feature
+from graph_builder.config.Config import Config
 
 
 class ModelConstructor:

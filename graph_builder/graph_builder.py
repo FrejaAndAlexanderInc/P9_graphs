@@ -9,7 +9,7 @@ from graph_builder.models.feature import Feature
 from graph_builder.models.relation import Relation
 import dgl
 
-class Graph:
+class GraphBuilder:
     def __init__(
         self, 
         entities: dict[str, Entity], 
@@ -20,13 +20,13 @@ class Graph:
         self.relations = relations
         self.features = features
         self.graph: dgl.DGLGraph = None # type: ignore
-        self.labels: pd.Series = self.get_labels() # series of bools
+        # self.labels: pd.Series = self.get_labels() # series of bools
         self.extras = dict() # ?
 
     def get_labels(self) -> pd.Series:
         """Get the labels from features. 
         Will return a Series of booleans, where the index maps to the corresponding patient.
-        Label is wether they have sepsis or not. 
+        Label is wether they have sepsis or not ie. 1 or 0. 
 
         Returns:
             pd.Series: Series of labels
@@ -34,24 +34,34 @@ class Graph:
         mapping_df = self.features['patients_features'].mapping
         return mapping_df.set_index('patients', drop=False)['has_sepsis']
 
-    def add_extra(self, extra, name):
-        self.extras[name] = extra
+    # def add_extra(self, extra, name):
+    #     self.extras[name] = extra
 
-    def add_relation(self, relation):
-        if type(relation) != Relation:
-            exit(f"Only of type Relation can be added to the list of entities")
-        elif relation.relation_name in self.entities:
-            exit(f"Relation with name {relation.relation_name} already exists")
-        else:
-            self.relations[relation.relation_name] = relation
+    # def add_relation(self, relation):
+    #     if type(relation) != Relation:
+    #         exit(f"Only of type Relation can be added to the list of entities")
+    #     elif relation.relation_name in self.entities:
+    #         exit(f"Relation with name {relation.relation_name} already exists")
+    #     else:
+    #         self.relations[relation.relation_name] = relation
 
-    def add_entity(self, entity):
-        if type(entity) != Entity:
-            exit(f"Only of type Entity can be added to the list of entities")
-        elif entity.name in self.entities:
-            exit(f"Entity with name {entity.name} already exists")
-        else:
-            self.entities[entity.name] = entity
+    # def add_entity(self, entity):
+    #     if type(entity) != Entity:
+    #         exit(f"Only of type Entity can be added to the list of entities")
+    #     elif entity.name in self.entities:
+    #         exit(f"Entity with name {entity.name} already exists")
+    #     else:
+    #         self.entities[entity.name] = entity
+
+    def add_feature(self, ntype: str, data: th.Tensor):
+        """Add feature to graph. 
+        TODO: not sure how works yet. 
+
+        Args:
+            ntype (str): node type: 'P', 'A', etc.
+            data (th.Tensor): data as Tensor
+        """
+        self.graph.nodes[ntype].data["feature"] = data
 
     def get_entity(self, name):
         if name in self.entities:
@@ -131,7 +141,7 @@ class Graph:
         edge_dict.pop(canonical_etype, None)
         self.graph = dgl.edge_subgraph(self.graph, edges=edge_dict, relabel_nodes=False)
 
-    def add_data_split(self, ntype: str, train_size: float, eval_size: float):
+    def add_data_split(self, train_size: float, eval_size: float, ntype: str = 'P'):
 
         # Select all ids
         all_ids = self.graph.nodes(ntype).numpy()
