@@ -11,7 +11,7 @@ class SepsisDataExtractor(DataExctractor):
         patient_limit: int = -1,
         medication_limt: int = -1,
     ) -> None:
-        """_summary_
+        """TODO: limits are not currently used... 
 
         Args:
             sepsis_patients_limit (int, optional): Limited number of sepsis cohort patients to use.
@@ -26,11 +26,11 @@ class SepsisDataExtractor(DataExctractor):
 
     ### entities
 
-    def sepsis_cohort(self, obj: str) -> str:
-        return f"select distinct subject_id as {obj} from masterthesis-401512.mimiciv_sepsis.sepsis_cohort_samples"
+    # def sepsis_cohort(self, obj: str) -> str:
+    #     return f"select distinct subject_id as {obj} from masterthesis-401512.mimiciv_sepsis.sepsis_cohort_samples"
 
     def patients(self, obj: str) -> str:
-        return f"select distinct subject_id as {obj} from masterthesis-401512.mimiciv_sepsis.patient_samples"
+        return f"select distinct subject_id as {obj} from masterthesis-401512.mimiciv_sepsis.all_patient_samples"
 
     def admissions(self, obj: str) -> str:
         return f"select distinct hadm_id as {obj} from masterthesis-401512.mimiciv_sepsis.admissions"
@@ -71,17 +71,18 @@ class SepsisDataExtractor(DataExctractor):
             select 
                 subject_id {sub}, 
                 gender, 
-                anchor_age as age, 0 as has_sepsis, 
-            from `masterthesis-401512.mimiciv_sepsis.patient_samples`"""
+                age,
+                has_sepsis, 
+            from `masterthesis-401512.mimiciv_sepsis.all_patient_samples`"""
 
-    def sepsis_cohort_features(self, sub: str) -> str:
-        return f"""
-            select 
-                subject_id {sub}, 
-                gender, 
-                age, 
-                1 as has_sepsis, 
-            from `masterthesis-401512.mimiciv_sepsis.sepsis_cohort_samples`"""
+    # def sepsis_cohort_features(self, sub: str) -> str:
+    #     return f"""
+    #         select 
+    #             subject_id {sub}, 
+    #             gender, 
+    #             age, 
+    #             1 as has_sepsis, 
+    #         from `masterthesis-401512.mimiciv_sepsis.sepsis_cohort_samples`"""
 
     def labevents_features(self, sub: str) -> str:
         return f"select subject_id {sub}, flag, from `masterthesis-401512.mimiciv_sepsis.labevents`"

@@ -24,16 +24,19 @@ class ModelConstructor:
         self.construct_entities()
         self.construct_features()
         self.construct_relations()
-        self.combine_patients()
+        # self.combine_patients()
 
         return self.entities, self.relations, self.features
 
-    def combine_patients(self):
-        """Combine the both the patients with and without sepsis. 
-        """
-        patients = self.entities["patients"]
-        sepsis_patients = self.entities["sepsis_cohort"]
-        patients.combine_entity(sepsis_patients)
+    # def combine_patients(self):
+    #     """Combine the both the patients with and without sepsis. 
+    #     """
+    #     patients = self.entities["patients"]
+    #     sepsis_patients = self.entities["sepsis_cohort"]
+    #     self.reindex()
+    #     patients.combine_entity(sepsis_patients)
+    #     self.entities["patients"] = patients
+
 
     def construct_entities(self):
         for ent in Config.entities:

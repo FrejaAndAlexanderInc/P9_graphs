@@ -1,15 +1,22 @@
+-- sepsis cohort samples
 DROP TABLE IF EXISTS `masterthesis-401512.mimiciv_sepsis.sepsis_cohort_samples`;
 create table `masterthesis-401512.mimiciv_sepsis.sepsis_cohort_samples` as
 select * from `masterthesis-401512.mimiciv_sepsis.sepsis_cohort`
 limit 200;
 
+-- table of all patient ids used (not really needed anymore)
 DROP TABLE IF EXISTS `masterthesis-401512.mimiciv_sepsis.used_subject_ids`;
 create table `masterthesis-401512.mimiciv_sepsis.used_subject_ids` as
 select distinct subject_id from `masterthesis-401512.mimiciv_sepsis.patient_samples`
 union all 
 SELECT distinct subject_id FROM `masterthesis-401512.mimiciv_sepsis.sepsis_cohort_samples`;
 
--- missing sepsis chort...
+-- combine sepsis and patient samples
+DROP TABLE IF EXISTS `masterthesis-401512.mimiciv_sepsis.all_patient_samples`;
+create table `masterthesis-401512.mimiciv_sepsis.all_patient_samples` as
+select subject_id, gender, anchor_age as age, false as has_sepsis from `masterthesis-401512.mimiciv_sepsis.patient_samples` 
+union all
+select subject_id, gender, age, has_sepsis from `masterthesis-401512.mimiciv_sepsis.sepsis_cohort_samples` 
 
 -- entities
 drop table if exists `masterthesis-401512.mimiciv_sepsis.diagnosis`;

@@ -41,4 +41,4 @@ class Feature:
         """
         cols = list(mapping.columns)
         cols.remove(self.sub.name)
-        return cols 
+        return cols # type: ignore

@@ -5,6 +5,7 @@ import pandas as pd
 import torch as th
 
 from graph_builder.models.entity import Entity
+from graph_builder.models.feature import Feature
 from graph_builder.models.relation import Relation
 import dgl
 
@@ -12,14 +13,26 @@ class Graph:
     def __init__(
         self, 
         entities: dict[str, Entity], 
-        relations: dict[str, Entity], 
-        features: dict[str, Entity]
+        relations: dict[str, Relation], 
+        features: dict[str, Feature]
     ):
         self.entities = entities
         self.relations = relations
         self.features = features
-        self.graph = None
+        self.graph: dgl.DGLGraph = None # type: ignore
+        self.labels: pd.Series = self.get_labels() # series of bools
         self.extras = dict() # ?
+
+    def get_labels(self) -> pd.Series:
+        """Get the labels from features. 
+        Will return a Series of booleans, where the index maps to the corresponding patient.
+        Label is wether they have sepsis or not. 
+
+        Returns:
+            pd.Series: Series of labels
+        """
+        mapping_df = self.features['patients_features'].mapping
+        return mapping_df.set_index('patients', drop=False)['has_sepsis']
 
     def add_extra(self, extra, name):
         self.extras[name] = extra
@@ -73,23 +86,27 @@ class Graph:
                 relation.obj.maps["origin-reindex"]
             )
 
-    def create_graph(self):
+    def create_graph(self) -> dgl.DGLGraph:
+        """Creates the DGL graph. 
+        DGL gievs in incorrect node_count per node_type, as it uses the max id of a node_type
+        to determine the count. 
+
+        Returns:
+            dgl.DGLGraph: The graph
+        """
+
         graph_relations = dict()
 
         # Construct relations for subsequent graph construction
         print(f"Adding data relations to graph")
         for relation in [rel for rel in self.relations.values() if rel.aux is False]:
             graph_relations.update(relation.construct_graph_relations())
-        # Add auxiliary relations to graph
-        aux_rels = [rel for rel in self.relations.values() if rel.aux is True]
-        if len(aux_rels) > 0:
-            print(f"\nAdding aux relations to graph")
-            for relation in aux_rels:
-                graph_relations.update(relation.construct_graph_relations())
 
         # Construct relations for subsequent graph construction
-        self.graph = dgl.heterograph(graph_relations)
+        self.graph = dgl.heterograph(data_dict=graph_relations) # type: ignore
+        
         print(f"\nCreated DGL graph")
+        return self.graph
 
     def change_relation_direction(self, relation_name: str, direction: str):
         if relation_name in self.relations:
