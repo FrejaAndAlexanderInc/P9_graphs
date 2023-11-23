@@ -1,9 +1,9 @@
 import dgl
 import torch
 import torch.nn as nn
-from GNN.gnn_model import GNN
+from GNN.gnn_model import HSAGE
 
-def test_gnn(model: GNN, graph: dgl.DGLGraph, test_data: tuple[torch.Tensor, torch.Tensor]) -> None:
+def test_gnn(model: HSAGE, graph: dgl.DGLGraph, test_data: tuple[torch.Tensor, torch.Tensor]) -> None:
     features, labels = test_data
     logits = model(graph, features)
 
@@ -18,7 +18,7 @@ def dummy_init_node_features(graph: dgl.DGLGraph, input_feature_size: int) -> No
     for node_type in graph.ntypes:
         graph.nodes[node_type].data['features'] = torch.randn(graph.number_of_nodes(node_type), input_feature_size)
 
-def train_gnn(model: GNN, graph: dgl.DGLGraph, labels: torch.Tensor, epochs: int) -> None:
+def train_gnn(model: HSAGE, graph: dgl.DGLGraph, labels: torch.Tensor, epochs: int) -> None:
     # Define loss function and optimizer
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)

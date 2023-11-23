@@ -1,8 +1,9 @@
 import os
-from GNN.gnn_model import GNN
+from GNN.gnn_model import HSAGE
 from graph_builder.graph_builder import GraphBuilder
 from graph_builder.model_constructor import ModelConstructor
 import GNN.model_runner as runner
+import torch as th
 
 os.environ["DGLBACKEND"] = "pytorch"
 import dgl
@@ -30,20 +31,27 @@ def main():
     # num_classes = (node_labels.max() + 1).item()
     # print("Number of classes:", num_classes)
 
-    # should be tuned 
+    
+
     input_feature_size = 64  
-    hidden_layer_size = 128
-    num_classes = 2 
 
     # Create the GNN model
-    model = GNN(in_feats=input_feature_size, hidden_feats=hidden_layer_size, num_classes=num_classes)
+    # model = GNN(in_feats=input_feature_size, hidden_feats=hidden_layer_size, num_classes=num_classes)
+    model = HSAGE(
+        graph=graph,
+        feats={},
+        h_dim=128,
+        out_dim=2,
+        n_layers=3,
+        dropout=0.001,
+        device='cuda',
+    )
     runner.dummy_init_node_features(graph, input_feature_size)
 
-    # Create labels (0 or 1) for binary classification
-    labels = torch.randint(0, 2, (graph.number_of_nodes('P'),))
-
     # Train the GNN
-    runner.train_gnn(model, graph, labels, epochs=10)
+    runner.train_gnn(model, graph, node_labels, epochs=100)
+
+
 
 
 if __name__ == '__main__':
