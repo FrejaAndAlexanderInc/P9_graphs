@@ -113,8 +113,9 @@ class GraphBuilder:
             )
 
     def add_features_to_graph(self) -> None:
-        """"""
-        return ...
+        """Add node features to graph 
+        """
+        ...
 
     def create_graph(self) -> tuple[dgl.DGLGraph, th.Tensor]:
         """Creates the DGL graph. 
@@ -127,12 +128,12 @@ class GraphBuilder:
         graph_relations = dict()
         self.reindex_graph()
 
-        self.add_features_to_graph()
-
         # Construct relations for subsequent graph construction
         print(f"Adding data relations to graph")
         for relation in [rel for rel in self.relations.values() if rel.aux is False]:
             graph_relations.update(relation.construct_graph_relations())
+
+        self.add_features_to_graph()
 
         self.graph = dgl.heterograph(graph_relations)
         
