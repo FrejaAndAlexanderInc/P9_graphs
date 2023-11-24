@@ -1,5 +1,5 @@
+from __future__ import annotations
 from enum import Enum, auto
-
 
 class EntityType(Enum):
 
@@ -21,5 +21,11 @@ class EntityType(Enum):
         return self.value
 
     @staticmethod
-    def from_str(str: str):
-        return EntityType[str.upper()]
+    def from_str(str: str) -> EntityType:
+        str = str.upper()
+        names = [item.name for item in EntityType]
+        if str in names:
+            return EntityType[str]
+        else:
+            raise Exception(f'Entity type: {str} does not exists.\nAvailable: {names}')
+        

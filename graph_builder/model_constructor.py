@@ -7,7 +7,7 @@ from graph_builder.models.entity import Entity
 from graph_builder.models.relation import Relation
 from graph_builder.models.feature import Feature
 from graph_builder.config.Config import Config
-
+from graph_builder.models.entity_type_enum import EntityType
 
 class ModelConstructor:
     """Loads and convert the partquet files to objects. 
@@ -24,19 +24,8 @@ class ModelConstructor:
         self.construct_entities()
         self.construct_features()
         self.construct_relations()
-        # self.combine_patients()
 
         return self.entities, self.relations, self.features
-
-    # def combine_patients(self):
-    #     """Combine the both the patients with and without sepsis. 
-    #     """
-    #     patients = self.entities["patients"]
-    #     sepsis_patients = self.entities["sepsis_cohort"]
-    #     self.reindex()
-    #     patients.combine_entity(sepsis_patients)
-    #     self.entities["patients"] = patients
-
 
     def construct_entities(self):
         for ent in Config.entities:
@@ -46,10 +35,11 @@ class ModelConstructor:
             alias = ent["alias"]
 
             # Create new Entity
-            new_entity = Entity(sub, alias)
+            e_type = EntityType.from_str(sub)
+            new_entity = Entity(e_type)
 
             # Read parquet file with entity ids
-            df = self.safe_read(Path(Config.output_folder) / f"{filename}.parquet", filename)
+            df = self.read_parquet(Path(Config.output_folder) / f"{filename}.parquet", filename)
 
             # Populate the new entity with ids
             new_entity.populate(df)
@@ -69,7 +59,7 @@ class ModelConstructor:
             entity2 = self.entities[obj]
 
             # Read parquet file with entity ids
-            df = self.safe_read(
+            df = self.read_parquet(
                 Path(Config.output_folder) / f"{file_name}.parquet", file_name
             )
 
@@ -91,7 +81,7 @@ class ModelConstructor:
             entity = self.entities[sub]
 
             # Read parquet file with entity ids
-            df = self.safe_read(
+            df = self.read_parquet(
                 Path(Config.output_folder) / f"{name}.parquet", name
             )
 
@@ -104,8 +94,18 @@ class ModelConstructor:
 
             self.features[name] = new_feature
 
-    def safe_read(self, file_path: Path, name: str) -> Optional[pd.DataFrame]:
+    def read_parquet(self, file_path: Path, filename: str) -> Optional[pd.DataFrame]:
         if os.path.exists(file_path):
             return pd.read_parquet(file_path)
         else:
-            exit(f"Could not find entity file {name}.parquet, did you extract it?")
+            exit(f"Could not find entity file {filename}.parquet, did you extract it?")
+
+    # def combine_patients(self):
+    #     """Combine the both the patients with and without sepsis. 
+    #     """
+    #     patients = self.entities["patients"]
+    #     sepsis_patients = self.entities["sepsis_cohort"]
+    #     self.reindex()
+    #     patients.combine_entity(sepsis_patients)
+    #     self.entities["patients"] = patients
+
