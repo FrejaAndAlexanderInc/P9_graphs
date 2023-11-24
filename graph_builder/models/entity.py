@@ -27,9 +27,9 @@ class Entity:
             )
         self.ids = self.ids.union(other_entity.ids)
 
-    def reindex(self, new_ids: set):
+    def reindex(self):
         # Save only the ids being used in relations
-        self.ids = new_ids.intersection(self.ids)
+        #self.ids = new_ids.intersection(self.ids)
 
         # Re-index the remaining ids and add to map
         reindex_origin_map = {new_id: old_id for new_id, old_id in enumerate(self.ids)}
@@ -43,3 +43,4 @@ class Entity:
 
         # Map ids to re-indexed ids
         self.ids = set([self.maps["origin-reindex"][id] for id in self.ids])
+

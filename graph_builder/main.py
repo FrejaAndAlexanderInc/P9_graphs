@@ -1,5 +1,5 @@
 from data_extractor.sepsis_extractor import SepsisDataExtractor
-from graph_builder.graph_constructor.graph import Graph
+from graph_builder.graph_builder import GraphBuilder
 from graph_builder.model_constructor import ModelConstructor
 
 EXTRACT = False
@@ -10,7 +10,7 @@ def main():
         sde.extract_all()
     mc = ModelConstructor()
     entities, relations, features = mc.build()
-    g = Graph(entities, relations, features)
+    g = GraphBuilder(entities, relations, features)
     dgl_graph = g.create_graph()
     breakpoint()
 

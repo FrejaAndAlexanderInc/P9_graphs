@@ -1,5 +1,5 @@
 import pandas as pd 
-from models.entity import Entity
+from graph_builder.models.entity import Entity
 
 class Feature:
     def __init__(

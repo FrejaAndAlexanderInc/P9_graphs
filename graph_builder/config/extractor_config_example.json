@@ -1,4 +1,22 @@
 {
-    "entities": ["patients", "admissions", "diagnosis", "labevents", "medications"],
-    "output_folder": "your path here"
-}   
+    "entities": [
+        {"file_name": "patients", "sub": "patients", "alias": "P"},
+        {"file_name": "admissions", "sub": "admissions", "alias": "A"},
+        {"file_name": "diagnosis", "sub": "diagnosis", "alias": "D"},
+        {"file_name": "labevents", "sub": "labevents", "alias": "L"},
+        {"file_name": "medication", "sub": "medication", "alias": "M"},
+        {"file_name": "procedures", "sub": "procedures", "alias": "PR"}
+    ],
+    "relations": [
+        {"file_name": "patients_labevents", "sub": "patients", "obj": "labevents", "relation_name": "P-L", "direction": "bidirectional"},
+        {"file_name": "patients_diagnosis", "sub": "patients", "obj": "diagnosis", "relation_name": "P-D", "direction": "bidirectional"},
+        {"file_name": "patients_medication", "sub": "patients", "obj": "medication", "relation_name": "P-M", "direction": "bidirectional"},
+        {"file_name": "patients_procedures", "sub": "patients", "obj": "procedures", "relation_name": "P-PR", "direction": "bidirectional"},
+        {"file_name": "patients_admissions", "sub": "patients", "obj": "admissions", "relation_name": "P-A", "direction": "bidirectional"}
+    ],
+    "features": [
+        {"file_name": "patients_features", "sub": "patients"},
+        {"file_name": "labevents_features", "sub": "labevents"}
+    ],
+    "output_folder": "your path"
+}
