@@ -3,14 +3,23 @@ from enum import Enum, auto
 
 class EntityType(Enum):
 
-    PATIENT = auto()
-    MEDICATION = auto()
-    ADMISSION = auto()
-    DIAGNOSIS = auto()
-    LABEVENT = auto()
+    PATIENTS = 'P'
+    MEDICATION = 'M'
+    ADMISSIONS = 'A'
+    DIAGNOSIS = 'D'
+    LABEVENTS = 'L'
+    PROCEDURES = 'PR'
 
     def __str__(self):
         return self.name
 
     def __repr__(self) -> str:
-        return str(self)
+        return f"{self.name}: {self.value}"
+
+    @property
+    def alias(self) -> str:
+        return self.value
+
+    @staticmethod
+    def from_str(str: str):
+        return EntityType[str.upper()]

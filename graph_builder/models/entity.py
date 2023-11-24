@@ -8,9 +8,10 @@ class Entity:
     ex. all patients.
     """
 
-    def __init__(self, name: str, alias: str):
-        self.name = name
-        self.alias = alias
+    def __init__(self, type: EntityType):
+        self.type = type
+        self.name = type.name
+        self.alias = type.alias
         self.ids = set()
         self.maps = dict()
         self.filter = dict()
