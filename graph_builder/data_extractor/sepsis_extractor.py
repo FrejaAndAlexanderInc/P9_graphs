@@ -5,25 +5,6 @@ from graph_builder.Tables import Tables
 class SepsisDataExtractor(DataExctractor):
     """Data extractor for 24 hour sepsis prognosis."""
 
-    def __init__(
-        self,
-        sepsis_patients_limit: int = -1,
-        patient_limit: int = -1,
-        medication_limt: int = -1,
-    ) -> None:
-        """TODO: limits are not currently used... 
-
-        Args:
-            sepsis_patients_limit (int, optional): Limited number of sepsis cohort patients to use.
-                If no limit is set, all patients will be extracted. Defaults to -1.
-            patient_limit (int, optional): Limited number of patients to use.
-                If no limit is set, all patients will be extracted.. Defaults to -1.
-        """
-        super().__init__()
-        self.sepsis_limit = sepsis_patients_limit
-        self.patient_limit = patient_limit
-        self.medication_limit = medication_limt
-
     ### entities
 
     # def sepsis_cohort(self, obj: str) -> str:

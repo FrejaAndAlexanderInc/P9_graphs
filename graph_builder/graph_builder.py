@@ -24,6 +24,22 @@ class GraphBuilder:
         # self.labels: pd.Series = self.get_labels() # series of bools
         self.extras = dict() # ?
 
+        self.__transform_features()
+
+
+    def __transform_features(self):
+        # convert gender 
+        breakpoint()
+        self.features['patients_features'].mapping['gender'] = self.features['patients_features'].mapping['gender'].apply(lambda x: int(x=='M'))
+
+        # convert 
+
+
+    def get_features(self) -> dict[str, th.Tensor]:
+        features = self.features['patients_features'].mapping.drop('has_sepsis', axis=1)
+        node_ids = self.graph.nodes().tolist()
+        ordered_features = [features.iloc[node_id] for node_id in node_ids]
+
     def __get_labels(self) -> th.Tensor:
         """Get the labels from features. 
         Will return a Series of booleans, where the index maps to the corresponding patient.

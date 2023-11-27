@@ -3,12 +3,12 @@ from enum import Enum, auto
 
 class EntityType(Enum):
 
-    PATIENTS = 'P'
-    MEDICATION = 'M'
-    ADMISSIONS = 'A'
-    DIAGNOSIS = 'D'
-    LABEVENTS = 'L'
-    PROCEDURES = 'PR'
+    patients = 'P'
+    medication = 'M'
+    admissions = 'A'
+    diagnosis = 'D'
+    labevents = 'L'
+    procedures = 'PR'
 
     def __str__(self):
         return self.name
@@ -22,7 +22,6 @@ class EntityType(Enum):
 
     @staticmethod
     def from_str(str: str) -> EntityType:
-        str = str.upper()
         names = [item.name for item in EntityType]
         if str in names:
             return EntityType[str]

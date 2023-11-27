@@ -13,27 +13,31 @@ def test_gnn(model: HSAGE, graph: dgl.DGLGraph, test_data: tuple[torch.Tensor, t
 
     print(f'Test Accuracy: {accuracy * 100:.2f}%')
 
-def dummy_init_node_features(graph: dgl.DGLGraph, input_feature_size: int) -> None:
+def dummy_init_node_features(graph: dgl.DGLGraph, input_feature_size: int):
     # Initialize node features (replace with your actual initialization)
+    # convention to use 'h' for 
     for node_type in graph.ntypes:
-        graph.nodes[node_type].data['features'] = torch.randn(graph.number_of_nodes(node_type), input_feature_size)
+        graph.nodes[node_type].data['features'] = torch.zeros(graph.number_of_nodes(node_type), input_feature_size)
 
-def train_gnn(model: HSAGE, graph: dgl.DGLGraph, labels: torch.Tensor, epochs: int) -> None:
+    return {node_type: torch.zeros(graph.number_of_nodes(node_type), input_feature_size) for node_type in graph.ntypes}
+
+def train_gnn(model, graph: dgl.DGLGraph, labels: torch.Tensor, features, epochs: int) -> None:
     # Define loss function and optimizer
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.BCEWithLogitsLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 
     for epoch in range(epochs):
         # Forward pass
-        logits = model(graph, graph.nodes['P'].data['features'])
+        output_dict = model(graph, features)
+        logits = output_dict['P']
 
         # Compute loss
-        loss = criterion(logits, labels)
+        # Assuming labels are in the range [0, 1]
+        loss = criterion(logits, labels.unsqueeze(1))  # Add unsqueeze to match the shape of logits
 
         # Backward pass
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
-        # Print the loss for monitoring
         print(f'Epoch {epoch + 1}/{epochs}, Loss: {loss.item()}')

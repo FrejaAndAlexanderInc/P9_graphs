@@ -2,32 +2,84 @@ import dgl
 import torch as th
 import torch.nn as nn
 import torch.nn.functional as F
-from dgl.nn.pytorch import SAGEConv, HeteroGraphConv
+from dgl.nn.pytorch import SAGEConv, HeteroGraphConv, GraphConv
 
-# class GNN(nn.Module):
-#     def __init__(self, in_feats, hidden_feats, num_classes):
-#         super(GNN, self).__init__()
-#         self.conv1 = GraphConv(in_feats, hidden_feats)
-#         self.conv2 = GraphConv(hidden_feats, hidden_feats)
-#         self.fc = nn.Linear(hidden_feats, num_classes)
+import torch.nn as nn
+import torch.nn.functional as F
 
-#     def forward(self, g: dgl.DGLGraph, features: torch.Tensor) -> torch.Tensor:
-#         # Extract edge types
-#         edge_types = g.canonical_etypes
+class HeteroGNN(nn.Module):
+    def __init__(self, in_feats: int, hidden_feats: int, out_feats: int, etypes, dropout: float):
+        super(HeteroGNN, self).__init__()
+        # self.conv1 = SAGEConv(in_feats, hidden_feats, aggregator_type='mean')
+        # self.conv2 = SAGEConv(hidden_feats, out_feats, aggregator_type='mean')
+        self.conv1 = SAGEConvLayer(in_feats, hidden_feats, etypes, dropout)
+        self.conv2 = SAGEConvLayer(hidden_feats, out_feats, etypes, dropout)
 
-#         # Apply graph convolutional layers for each edge type
-#         for etype in edge_types:
-#             src, dst = g.all_edges(etype=etype)
-#             g.nodes[dst].data['h'] = self.conv1(g, g.nodes[src].data['h'], etype=etype)
-#             g.nodes[dst].data['h'] = F.relu(g.nodes[dst].data['h'])
+        # Convolutions
+        self.layers = nn.ModuleList()
+        self.layers.append(self.conv1)
+        for _ in range(1):
+            self.layers.append(
+                SAGEConvLayer(
+                    hidden_feats,
+                    hidden_feats,
+                    etypes,
+                    dropout
+                )
+            )
+        self.layers.append(self.conv2)
 
-#         # Global pooling (sum or mean) to obtain a graph-level representation
-#         x = dgl.mean_nodes(g, 'h')
+        self.activation = nn.ReLU()
+        self.sigmoid = nn.Sigmoid()
+        
+    def forward(self, g: dgl.DGLGraph, features: dict[str, th.Tensor]) -> dict[str, th.Tensor]:
+        h_dict = {}
+        for edge_type, conv in self.conv1.items():
+            src, dst = g.all_edges(etype=edge_type)
+            h = conv(g, features[edge_type], src, dst)
+            h_dict[edge_type] = F.relu(h)
 
-#         # Fully connected layer for classification
-#         x = self.fc(x)
+        for edge_type, conv in self.conv2.items():
+            src, dst = g.all_edges(etype=edge_type)
+            h = conv(g, h_dict[edge_type], src, dst)
+            h_dict[edge_type] = F.relu(h)
 
-#         return x
+        # Perform mean pooling for each node type separately
+        pooled_dict = {}
+        for node_type in g.ntypes:
+            # Get the nodes of the current type
+            nodes = g.nodes(node_type)
+
+            # Extract the corresponding hidden features
+            hidden_feats = [h_dict[edge_type][nodes] for edge_type in g.etypes if edge_type[0] == node_type]
+
+            # Perform mean pooling
+            pooled_feats = th.mean(th.stack(hidden_feats), dim=0)
+            pooled_dict[node_type] = pooled_feats
+
+        return pooled_dict
+
+    # def forward(self, g: dgl.DGLGraph, features) -> dict[str, th.Tensor]:
+    #     # Use the same GraphSAGE-like model for each edge type
+    #     h_dict = self.conv1(g, features)
+    #     h_dict = {k: F.relu(h) for k, h in h_dict.items()}
+    #     h_dict = self.conv2(g, h_dict)
+    #     h_dict = {k: F.relu(h) for k, h in h_dict.items()}
+        
+    #     # Global pooling (sum or mean) to obtain a graph-level representation
+    #     h = dgl.mean_nodes(g, 'features', h_dict, ntype=g.ntypes)
+    #     return h
+
+class NodeClassifier(nn.Module):
+    def __init__(self, in_feats: int, hidden_feats: int, out_feats: int, etypes, dropout: float):
+        super(NodeClassifier, self).__init__()
+        self.gnn = HeteroGNN(in_feats, hidden_feats, out_feats, etypes, dropout)
+        self.fc = nn.Linear(out_feats, 1)  # Binary classification
+    
+    def forward(self, g: dgl.DGLGraph, features: dict[str, th.Tensor]) -> th.Tensor:
+        h = self.gnn(g, features)
+        logits = self.fc(h)
+        return logits.squeeze(1)
 
 class HSAGE(nn.Module):
     def __init__(
@@ -128,20 +180,20 @@ class HSAGE(nn.Module):
         nn.init.xavier_uniform_(emb, gain=nn.init.calculate_gain('relu'))
         return emb
 
-    def forward(self, hg, feats):
+    def forward(self, graph: dgl.DGLGraph, feats: dict[str, th.Tensor]):
 
-        if type(hg) != list:
+        if type(graph) != list:
             # full graph training,
             for layer_id, layer in enumerate(self.layers):
                 # Do convolution
-                feats = layer(hg, feats)
+                feats = layer(graph, feats)
 
                 # Apply activation function
                 feats = {k: self.activation(v) for k, v in feats.items()}
 
         else:
             # minibatch training, block
-            for layer, block in zip(self.layers, hg):
+            for layer, block in zip(self.layers, graph):
 
                 # Apply convolution
                 feats = layer(block, feats)
@@ -154,10 +206,11 @@ class HSAGE(nn.Module):
             # Perform multiple output calculations,
             # One for each hierarchical level
             for name, layer in self.flat_hml.items():
-                feats[name] = self.sigmoid(layer(feats['S']))
+                feats[name] = self.sigmoid(layer(feats['P']))
 
         # linear output layer
-        feats['S'] = self.sigmoid(self.out_layer(feats['S']))
+        feats['P'] = self.sigmoid(self.out_layer(feats['P']))
+        # return self.sigmoid(self.out_layer(feats['P']))
 
         return feats
 

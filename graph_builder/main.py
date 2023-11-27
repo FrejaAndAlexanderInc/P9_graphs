@@ -6,7 +6,7 @@ EXTRACT = False
 
 def main():
     if EXTRACT:
-        sde = SepsisDataExtractor(200, 1000, 50)
+        sde = SepsisDataExtractor()
         sde.extract_all()
     mc = ModelConstructor()
     entities, relations, features = mc.build()
