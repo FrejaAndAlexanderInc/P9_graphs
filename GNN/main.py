@@ -35,9 +35,10 @@ def main():
     print(graph)
     # breakpoint()
 
-    input_feature_size = 64  
+    input_feature_size = 5
     hidden_layer_size = 128
-    num_classes = 2
+    num_classes = 1 # binary classification, get value from 0 to 1
+    
     # features = runner.dummy_init_node_features(graph, 5)
     features = g_builder.get_features()
 
@@ -46,8 +47,8 @@ def main():
     model = HSAGE(
         graph=graph,
         feats={},
-        h_dim=5,
-        out_dim=1,
+        h_dim=input_feature_size, # number of features 
+        out_dim=num_classes, 
         n_layers=3,
         dropout=0.001,
         device='cuda',
