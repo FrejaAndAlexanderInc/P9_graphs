@@ -1,7 +1,7 @@
 import dgl
 import torch
 import torch.nn as nn
-from GNN.gnn_model import HSAGE
+from GNN.models import HSAGE
 
 def test_gnn(model: HSAGE, graph: dgl.DGLGraph, test_data: tuple[torch.Tensor, torch.Tensor]) -> None:
     features, labels = test_data

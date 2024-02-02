@@ -28,10 +28,10 @@ class GraphBuilder:
 
 
     def __transform_features(self):
+        """Transform features to umeric values for ml training. 
+        """
         # convert gender 
-        breakpoint()
         self.features['patients_features'].mapping['gender'] = self.features['patients_features'].mapping['gender'].apply(lambda x: int(x=='M'))
-
         # convert 
 
 
@@ -48,10 +48,12 @@ class GraphBuilder:
         Returns:
             th.Tensor: Series of labels
         """
-        mapping_df = self.features['patients_features'].mapping
-        labels = mapping_df.set_index('patients', drop=False)['has_sepsis']
+        if self.labels == None:
+            mapping_df = self.features['patients_features'].mapping
+            labels = mapping_df.set_index('patients', drop=False)['has_sepsis']
+            self.labels = labels
 
-        return th.tensor(labels.values)
+        return th.tensor(self.labels.values)
 
     # def add_extra(self, extra, name):
     #     self.extras[name] = extra

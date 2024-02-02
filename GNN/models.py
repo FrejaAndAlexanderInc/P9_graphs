@@ -7,17 +7,17 @@ from dgl.nn.pytorch import SAGEConv, HeteroGraphConv, GraphConv
 import torch.nn as nn
 import torch.nn.functional as F
 
-class HeteroGNN(nn.Module):
+class GraphSAGE(nn.Module):
     def __init__(self, in_feats: int, hidden_feats: int, out_feats: int, etypes, dropout: float):
-        super(HeteroGNN, self).__init__()
+        super(GraphSAGE, self).__init__()
         # self.conv1 = SAGEConv(in_feats, hidden_feats, aggregator_type='mean')
         # self.conv2 = SAGEConv(hidden_feats, out_feats, aggregator_type='mean')
-        self.conv1 = SAGEConvLayer(in_feats, hidden_feats, etypes, dropout)
-        self.conv2 = SAGEConvLayer(hidden_feats, out_feats, etypes, dropout)
+        self.input_layer = SAGEConvLayer(in_feats, hidden_feats, etypes, dropout)
+        self.output_layer = SAGEConvLayer(hidden_feats, out_feats, etypes, dropout)
 
         # Convolutions
         self.layers = nn.ModuleList()
-        self.layers.append(self.conv1)
+        self.layers.append(self.input_layer)
         for _ in range(1):
             self.layers.append(
                 SAGEConvLayer(
@@ -27,19 +27,19 @@ class HeteroGNN(nn.Module):
                     dropout
                 )
             )
-        self.layers.append(self.conv2)
+        self.layers.append(self.output_layer)
 
         self.activation = nn.ReLU()
         self.sigmoid = nn.Sigmoid()
         
     def forward(self, g: dgl.DGLGraph, features: dict[str, th.Tensor]) -> dict[str, th.Tensor]:
         h_dict = {}
-        for edge_type, conv in self.conv1.items():
+        for edge_type, conv in self.input_layer.items():
             src, dst = g.all_edges(etype=edge_type)
             h = conv(g, features[edge_type], src, dst)
             h_dict[edge_type] = F.relu(h)
 
-        for edge_type, conv in self.conv2.items():
+        for edge_type, conv in self.output_layer.items():
             src, dst = g.all_edges(etype=edge_type)
             h = conv(g, h_dict[edge_type], src, dst)
             h_dict[edge_type] = F.relu(h)
@@ -73,7 +73,7 @@ class HeteroGNN(nn.Module):
 class NodeClassifier(nn.Module):
     def __init__(self, in_feats: int, hidden_feats: int, out_feats: int, etypes, dropout: float):
         super(NodeClassifier, self).__init__()
-        self.gnn = HeteroGNN(in_feats, hidden_feats, out_feats, etypes, dropout)
+        self.gnn = GraphSAGE(in_feats, hidden_feats, out_feats, etypes, dropout)
         self.fc = nn.Linear(out_feats, 1)  # Binary classification
     
     def forward(self, g: dgl.DGLGraph, features: dict[str, th.Tensor]) -> th.Tensor:
@@ -240,3 +240,15 @@ class SAGEConvLayer(nn.Module):
 
     def forward(self, mfg, h):
         return self.layer(mfg, h)
+
+class GNN2layer(nn.Module):
+    def __init__(self, hidden_channels, out_channels):
+        super().__init__()
+        self.conv1 = SAGEConv((-1, -1), hidden_channels)
+        self.conv2 = SAGEConv((-1, -1), out_channels)
+
+    def forward(self, x, edge_index):
+        x = self.conv1(x, edge_index).relu()
+        x = self.conv2(x, edge_index)
+        return x
+

@@ -1,5 +1,5 @@
 import os
-from GNN.gnn_model import HSAGE, NodeClassifier
+from GNN.models import HSAGE, NodeClassifier
 from graph_builder.graph_builder import GraphBuilder
 from graph_builder.model_constructor import ModelConstructor
 import GNN.model_runner as runner
