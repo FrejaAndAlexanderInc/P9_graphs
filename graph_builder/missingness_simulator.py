@@ -18,6 +18,7 @@ class MissingSimulator:
             attributes (pd.DataFrame): Attributes to simulate missingness on.
             missingness_rate (float): The rate of missingness to simulate.
                 0.01 is 1% missingness, 0.1 is 10% missingness, etc.
+            missing_value (Any, optional): The value to use for missingness.
 
         Returns:
             pd.DataFrame: A new dataframe with missingness simulated.
